@@ -45,16 +45,48 @@ class Templates:
                             default_mask=self.default_mask,
                             raw_16x16=self.raw_16x16)
 
+    def common_masks(self):
+        ascii = self.default_mask.copy()
+        ascii[:] = 0
+        ascii[32:127] = 1
+
+        # Unicode Block Characters
+        block = self.default_mask.copy()
+        block[:] = 0
+        block[0x2580:0x2597+1] = 1
+
+        # Block mess up with Gamma optimizers
+        no_block = ~block
+        no_block[0x2028] = 0 # This char is ugly as well
+
+        # Braille
+        braille = self.default_mask.copy()
+        braille[:] = 0
+        braille[0x2800:0x2900] = 1
+
+        # TODO: ADD web-safe (i.e. pango renders with ascii width
+        # TODO: ADD font-safe (i.e. most monospace fonts look the same)
+
+        return {
+            'ascii': ascii,
+            'block': block,
+            'no_block': no_block,
+            'braille': braille,
+            'ascii_braille': ascii | braille,
+        }
+
 
 DEFAULT_TEMPLATES = Templates.from_file(
     os.path.join(os.path.dirname(__file__), 'Ubuntu Mono'))
 
 
-def normalize_mask(mask: typing.Union[np.ndarray, slice], reference):
+def normalize_mask(mask: typing.Union[np.ndarray, slice], reference, templates):
     if isinstance(mask, slice):
         new_mask = np.zeros_like(reference)
         new_mask[mask] = 1
         mask = new_mask
+    elif isinstance(mask, str):
+        mask = templates.common_masks()[mask]
     elif mask is None:
         mask = reference
 
@@ -69,7 +101,7 @@ def get_16x8_flat(templates=None, mask=None):
     premask = templates.default_mask
 
     cs_all = base.reshape(base.shape[0], -1).clip(0, 1)
-    mask = normalize_mask(mask, premask) & premask
+    mask = normalize_mask(mask, premask, templates) & premask
 
     return cs_all[mask], templates.indexer[mask]
 
@@ -80,7 +112,7 @@ def get_16x16(templates=None, mask=None, return_edges=True):
     base = templates.base_16x16
     edges = templates.edges_8x8
     premask = templates.default_mask
-    mask = normalize_mask(mask, premask) & premask
+    mask = normalize_mask(mask, premask, templates) & premask
 
     if return_edges:
         return base[mask], edges[mask], templates.indexer[mask]

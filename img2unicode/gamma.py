@@ -3,7 +3,7 @@ import skimage.transform
 from n2 import HnswIndex
 from sklearn.neighbors import NearestNeighbors
 
-from img2unicode.templates import get_16x16, DEFAULT_TEMPLATES
+from img2unicode.templates import get_16x16, DEFAULT_TEMPLATES, normalize_mask
 
 
 class BasicGammaOptimizer:
@@ -36,8 +36,7 @@ class BasicGammaOptimizer:
         self.isalmostthin = (bigs * almost_thin_mask).sum(axis=1).sum(axis=1) < 0.1
 
 
-        if charmask is None:
-            charmask = np.ones(len(bigs), dtype='bool')
+        charmask = normalize_mask(charmask, np.ones(len(bigs), dtype='bool'), templates)
 
         athin_idx_m = charmask&(self.iswide&self.isalmostthin)
         if athin_idx_m.sum()==0:
