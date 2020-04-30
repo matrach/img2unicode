@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='img2unicode',
-    version='0.1',
+    version='0.1a1',
     description='Convert images to unicode based on font templates. Especially usable in terminal.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -13,6 +13,9 @@ setup(name='img2unicode',
     author_email='matraszek.maciej@gmail.com',
     license='MIT',
     packages=find_packages(),
+    package_data={
+        'img2unicode': ['*.npz', '*.npy'],
+    },
     install_requires=[
           'numpy',
           'pandas',
