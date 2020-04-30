@@ -1,12 +1,12 @@
 | Optimizer name | Constructor | Chars | Setup time |
 | -------------- | ----------- | ----- | ---------- |
-| gamma/space | (SpaceDualOptimizer()) | 1 | 0.0000s |
-| gamma/half | (HalfBlockDualOptimizer()) | 1 | 0.0000s |
-| gamma/quad | (FastQuadDualOptimizer()) | 7 | 0.0002s |
-| gamma/fast-block | (FastGenericDualOptimizer(slice(0x2580, 0x259F+1))) | 32 | 0.0327s |
-| gamma/fast-ascii | (FastGenericDualOptimizer(slice(0x32, 127))) | 77 | 0.0326s |
-| gamma/fast-all | (FastGenericDualOptimizer()) | 5577 | 0.0493s |
-| gamma/exact-block | (ExactGenericDualOptimizer(slice(0x2580, 0x259F + 1))) | 32 | 0.0323s |
+| dual/space | (SpaceDualOptimizer()) | 1 | 0.0000s |
+| dual/half | (HalfBlockDualOptimizer()) | 1 | 0.0000s |
+| dual/quad | (FastQuadDualOptimizer()) | 7 | 0.0002s |
+| dual/fast-block | (FastGenericDualOptimizer(slice(0x2580, 0x259F+1))) | 32 | 0.0327s |
+| dual/fast-ascii | (FastGenericDualOptimizer(slice(0x32, 127))) | 77 | 0.0326s |
+| dual/fast-all | (FastGenericDualOptimizer()) | 5577 | 0.0493s |
+| dual/exact-block | (ExactGenericDualOptimizer(slice(0x2580, 0x259F + 1))) | 32 | 0.0323s |
 | gamma/fast-noblock | (FastGammaOptimizer(charmask=no_block_mask)) | 5554 | 0.6563s |
 | gamma/exact-noblock | (ExactGammaOptimizer(charmask=no_block_mask)) | 5554 | 0.2332s |
 | gamma/basic-noblock | (BasicGammaOptimizer(charmask=no_block_mask)) | 5554 | 0.1065s |

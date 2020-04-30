@@ -22,7 +22,7 @@ for k in dual_optimizers:
     s = time.time()
     name = dual_optimizers[k]
     dual_optimizers[k] = eval(name)
-    print(f"| Initialization | gamma/{k} | ({name}) | {dual_optimizers[k].n_chars} | {time.time()-s:.4f}s |")
+    print(f"| Initialization | dual/{k} | ({name}) | {dual_optimizers[k].n_chars} | {time.time()-s:.4f}s |")
 
 no_block_mask = np.ones_like(DEFAULT_TEMPLATES.default_mask)
 no_block_mask[0x2028] = 0
