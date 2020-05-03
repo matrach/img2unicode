@@ -1,17 +1,17 @@
 | Optimizer name | Constructor | Chars | Setup time |
 | -------------- | ----------- | ----- | ---------- |
-| Initialization | dual/space | (SpaceDualOptimizer()) | 1 | 0.00s |
-| Initialization | dual/half | (HalfBlockDualOptimizer()) | 1 | 0.00s |
-| Initialization | dual/quad | (FastQuadDualOptimizer()) | 7 | 0.00s |
-| Initialization | dual/exact-block | (ExactGenericDualOptimizer("block")) | 24 | 0.03s |
-| Initialization | dual/fast-block | (FastGenericDualOptimizer("block")) | 24 | 0.03s |
-| Initialization | dual/fast-all | (FastGenericDualOptimizer()) | 5577 | 0.05s |
-| Initialization | dual/fast-ascii | (FastGenericDualOptimizer("ascii")) | 94 | 0.03s |
-| Initialization | gamma/fast-noblock | (FastGammaOptimizer(charmask="no_block")) | 5553 | 0.64s |
-| Initialization | gamma/exact-noblock | (ExactGammaOptimizer(charmask="no_block")) | 5553 | 0.23s |
-| Initialization | gamma/basic-noblock | (BasicGammaOptimizer(charmask="no_block")) | 5553 | 0.11s |
-| Initialization | gamma/fast-noblock-bw | (FastGammaOptimizer(charmask="no_block", use_color=False)) | 5553 | 0.64s |
-| Initialization | gamma/exact-ascii-bw | (ExactGammaOptimizer(charmask="ascii", use_color=False)) | 95 | 0.10s |
+|  dual/space | (SpaceDualOptimizer()) | 1 | 0.00s |
+|  dual/half | (HalfBlockDualOptimizer()) | 1 | 0.00s |
+|  dual/quad | (FastQuadDualOptimizer()) | 7 | 0.00s |
+|  dual/exact-block | (ExactGenericDualOptimizer("block")) | 24 | 0.03s |
+|  dual/fast-block | (FastGenericDualOptimizer("block")) | 24 | 0.03s |
+|  dual/fast-all | (FastGenericDualOptimizer()) | 5577 | 0.05s |
+|  dual/fast-ascii | (FastGenericDualOptimizer("ascii")) | 94 | 0.03s |
+|  gamma/fast-noblock | (FastGammaOptimizer(charmask="no_block")) | 5553 | 0.64s |
+|  gamma/exact-noblock | (ExactGammaOptimizer(charmask="no_block")) | 5553 | 0.23s |
+|  gamma/basic-noblock | (BasicGammaOptimizer(charmask="no_block")) | 5553 | 0.11s |
+|  gamma/fast-noblock-bw | (FastGammaOptimizer(charmask="no_block", use_color=False)) | 5553 | 0.64s |
+|  gamma/exact-ascii-bw | (ExactGammaOptimizer(charmask="ascii", use_color=False)) | 95 | 0.10s |
 
 | Renderer | Optimizer | Time | Result |
 | -------- | --------- | ---- | ------ |

@@ -33,7 +33,7 @@ chars, fores, backs = renderer.render_numpy('examples/obama.jpg', optimizer=asci
 ## Optimizers
 Here is a quick comparison of the most usable optimizers:
 
-| FastQuadDualOptimizer() |  FastGenericDualOptimizer("block") | FastGammaOptimizer(charmask="no_block") | FastGammaOptimizer(charmask="no_block", use_color=False) |
+| FastQuadDualOptimizer() |  FastGenericDualOptimizer ("block") | FastGammaOptimizer (charmask="no_block") | FastGammaOptimizer (charmask="no_block", use_color=False) |
 | --- | --- | --- | ---
 | Choses from 4-pixel characters like ▚ | Optimizes foreground/background for whole [Unicode Block Elements](https://en.wikipedia.org/wiki/Block_Elements). | Optimizes foreground color for all Unicode rendered in single cell. | Same, but does't use terminal colors. |
 | ![](examples/obama/dual/quad.png) | ![](examples/obama/dual/fast-block.png) | ![](examples/obama/gamma/fast-noblock.png) | ![](examples/obama/gamma/fast-noblock-bw.png) |
