@@ -92,8 +92,8 @@ class Renderer:
                         back = float_rgb2term_back(bgs[idx])
                     else:
                         back = ''
-
-                    f.write(fore + back + chr(res))
+                    # Add LTR override to fix Arabic script
+                    f.write('\u202D' + fore + back + chr(res))
                 f.write(term_reset() + '\n')
 
 
