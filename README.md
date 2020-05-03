@@ -4,6 +4,7 @@ The library is currently optimized for Ubuntu Mono font rendered by libvte (Gnom
 
 ````bash
 pip install img2unicode
+imgcat image.jpg
 ````
 
 
@@ -40,8 +41,8 @@ Here is a quick comparison of the most usable optimizers:
 | ![](examples/matplotlib/dual/quad.png) | ![](examples/matplotlib/dual/fast-block.png) | ![](examples/matplotlib/gamma/fast-noblock.png)  |  ![](examples/matplotlib/gamma/fast-noblock-bw.png) |
 | Good color representation | Good color and crisper image | Crisp edges with black | Pure art, no color. |
 | Foreground & background    | Foreground & background | Just foreground | No color |
-| ~5Hz | ~5Hz | ~1Hz | ~2Hz |
-| O(S) | O(S*T) | O(S*log(T)) | O(S*log(T)) |
+| ~5Hz | ~4Hz | ~1Hz | ~2Hz |
+| O(S*T), T=7 | O(S*T), T=24 | O(S*log(T)), T=5553 | O(S*log(T)), T=5553 |
 
 Where `S` is the number of 16x8 pixel samples to optimize for and `T` is the number of templates.
 
@@ -53,6 +54,13 @@ Use the included `termview` script to browse images with all renderers:
 termview examples/obama.jpg
 ```
 ![termview demo](examples/termview.gif)
+
+or use `imgcat` to display an image in your terminal:
+
+```bash
+imgcat examples/obama.jpg
+```
+
 
 ## More samples
 To see how other optimizers compare to each other, see [examples/README.md](examples/README.md).

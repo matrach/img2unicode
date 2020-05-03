@@ -13,7 +13,7 @@ setup(name='img2unicode',
     author_email='matraszek.maciej@gmail.com',
     license='MIT',
     packages=find_packages(),
-    scripts=['termview'],
+    scripts=['bin/termview', 'bin/imgcat'],
     package_data={
         'img2unicode': ['*.npz', '*.npy'],
     },

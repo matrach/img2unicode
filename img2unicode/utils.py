@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import numpy as np
 
 def cubify(arr, newshape):
@@ -16,3 +18,11 @@ def uncubify(arr, oldshape):
     tmpshape = np.concatenate([repeats, newshape])
     order = np.arange(len(tmpshape)).reshape(2, -1).ravel(order='F')
     return arr.reshape(tmpshape).transpose(order).reshape(oldshape)
+
+@contextmanager
+def open_or_pass(filename_or_fobj, *args, **kwargs):
+    if isinstance(filename_or_fobj, str):
+        with open(filename_or_fobj, *args, **kwargs) as f:
+            yield f
+    else:
+        yield filename_or_fobj

@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+import sys
+
+import click
+
+from img2unicode import *
+
+
+dual_optimizers = {
+    'space': 'SpaceDualOptimizer()',
+    'half': 'HalfBlockDualOptimizer()',
+    'quad': 'FastQuadDualOptimizer()',
+    'fast-block': 'FastGenericDualOptimizer("block")',
+    'fast-all': 'FastGenericDualOptimizer()',
+    'fast-ascii': 'FastGenericDualOptimizer("ascii")',
+}
+
+gamma_optimizers = {
+    'fast-noblock': 'FastGammaOptimizer(charmask="no_block")',
+    'fast-braille': 'FastGammaOptimizer(charmask="braille")',
+    'fast-noblock-bw': 'FastGammaOptimizer(charmask="no_block", use_color=False)',
+    'fast-ascii-bw': 'FastGammaOptimizer(charmask="ascii", use_color=False)',
+}
+
+optimizers = ['dual/' + k for k in dual_optimizers.keys()] + ['gamma/' + k for k in gamma_optimizers.keys()]
+
+@click.command()
+@click.argument('filename', type=click.Path(dir_okay=False, exists=True))
+@click.option('--optimizer', type=click.Choice(optimizers), default='dual/quad')
+@click.option('--rows', type=int, default=24)
+@click.option('--cols', type=int, default=80)
+def main(filename, optimizer, rows, cols):
+    renderer, optimizer = optimizer.split('/')
+    optimizer = dict(dual_optimizers, **gamma_optimizers)[optimizer]
+    optimizer = eval(optimizer)
+
+    if renderer == 'dual':
+        renderer = Renderer(optimizer, max_w=cols, max_h=rows, allow_upscale=True)
+    else:
+        renderer = GammaRenderer(optimizer, max_w=cols, max_h=rows,
+                            allow_upscale=True)
+
+    renderer.render_terminal(filename, sys.stdout)
+
+
+if __name__ == '__main__':
+    main()

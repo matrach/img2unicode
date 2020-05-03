@@ -8,7 +8,7 @@ import skimage.feature
 import skimage
 
 from img2unicode.templates import DEFAULT_TEMPLATES
-from img2unicode.utils import uncubify
+from img2unicode.utils import uncubify, open_or_pass
 
 
 def float_rgb2term_fore(fg):
@@ -74,7 +74,7 @@ class Renderer:
     def render_terminal(self, path_or_img, file, optimizer=None, **kwargs):
         img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)
 
-        with open(file, 'w') as f:
+        with open_or_pass(file, 'w') as f:
             for x in range(img.shape[0]//16):
                 for y in range(img.shape[1]//8):
                     if len(chars.shape) == 1:
