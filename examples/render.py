@@ -6,7 +6,7 @@ from pathlib import Path
 print("""
 | Optimizer name | Constructor | Chars | Setup time |
 | -------------- | ----------- | ----- | ---------- |
-""")
+""", end='')
 
 images = ['obama.jpg', 'matplotlib.png']
 dual_optimizers = {
@@ -22,7 +22,7 @@ for k in dual_optimizers:
     s = time.time()
     name = dual_optimizers[k]
     dual_optimizers[k] = eval(name)
-    print(f"| Initialization | dual/{k} | ({name}) | {dual_optimizers[k].n_chars} | {time.time()-s:.2f}s |")
+    print(f"| dual/{k} | ({name}) | {dual_optimizers[k].n_chars} | {time.time()-s:.2f}s |")
 
 gamma_optimizers = {
     'fast-noblock': 'FastGammaOptimizer(charmask="no_block")',
@@ -36,7 +36,7 @@ for k in gamma_optimizers:
     s = time.time()
     name = gamma_optimizers[k]
     gamma_optimizers[k] = eval(name)
-    print(f"| Initialization | gamma/{k} | ({name}) | {gamma_optimizers[k].n_chars} | {time.time()-s:.2f}s |")
+    print(f"| gamma/{k} | ({name}) | {gamma_optimizers[k].n_chars} | {time.time()-s:.2f}s |")
 
 this = Path(__file__).parent
 dual_renderer = Renderer(max_w=160, max_h=60)
@@ -48,7 +48,7 @@ dirs = [('dual', dual_renderer, dual_optimizers),
 print("""
 | Renderer | Optimizer | Time | Result |
 | -------- | --------- | ---- | ------ |
-""")
+""", end='')
 for img in images:
     img_path = this/img
     for dirname, renderer, optimizers in dirs:

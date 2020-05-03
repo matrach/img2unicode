@@ -62,7 +62,7 @@ class Renderer:
         ims = ims[:ims.shape[0]-(ims.shape[0]%16), :ims.shape[1]-(ims.shape[1]%8)]
         return ims
 
-    def optimize(self, path_or_img, optimizer=None):
+    def optimize(self, path_or_img, optimizer=None, invert=False):
         if optimizer is None:
             optimizer = self.default_optimizer
 
@@ -71,8 +71,8 @@ class Renderer:
         chars, fgs, bgs = optimizer.optimize_chunk(img)
         return img, chars, fgs, bgs
 
-    def render_terminal(self, path_or_img, file, optimizer=None):
-        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer)
+    def render_terminal(self, path_or_img, file, optimizer=None, **kwargs):
+        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)
 
         with open(file, 'w') as f:
             for x in range(img.shape[0]//16):
@@ -97,22 +97,26 @@ class Renderer:
                 f.write(term_reset() + '\n')
 
 
-    def render_numpy(self, path_or_img, optimizer=None):
-        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer)
-        fgs = (255*fgs).astype('uint8')
-        bgs = (255*bgs).astype('uint8')
+    def render_numpy(self, path_or_img, optimizer=None, **kwargs):
+        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)
+        if fgs is not None:
+            fgs = (255*fgs).astype('uint8')
+        if bgs is not None:
+            bgs = (255*bgs).astype('uint8')
 
         if len(chars.shape)==2:
             return chars, fgs, bgs
         new_shape = (img.shape[0]//16, img.shape[1]//8)
         chars = chars.reshape(new_shape)
-        fgs = fgs.reshape(*new_shape, 3)
-        bgs = bgs.reshape(*new_shape, 3)
+        if fgs is not None:
+            fgs = fgs.reshape(*new_shape, 3)
+        if bgs is not None:
+            bgs = bgs.reshape(*new_shape, 3)
 
         return chars, fgs, bgs
 
-    def prerender(self, path_or_img, optimizer=None, templates=DEFAULT_TEMPLATES, show=False):
-        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer)
+    def prerender(self, path_or_img, optimizer=None, templates=DEFAULT_TEMPLATES, show=False, **kwargs):
+        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)
 
         cs_all = templates.base_16x8.clip(0., 1.)
         cs_all = cs_all.reshape(cs_all.shape[0], -1, 1)

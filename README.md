@@ -52,6 +52,7 @@ To see more eyecandy of photos, videos and plots, see the [matrach/img2unicode-d
 
 # TODO
 
-  [ ] - write more docs, document code
-  [ ] - describe how it works in readme
-  [ ] - solve foreground & background optimization sublinear in templates
+  - [ ] write more docs, document code
+  - [ ] describe how it works in readme
+  - [ ] solve foreground & background optimization sublinear in templates
+  - [ ] add support for Unicode 13 Legacy Computing block
