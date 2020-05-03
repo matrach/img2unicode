@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+import click
 import os
 import queue
 import sys
@@ -95,18 +98,19 @@ class CharsArray:
 
     def render_raw(self):
         for y in range(self.chars.shape[0]):
-            line = []
+            line = ['\u202d'] # L-T-R override - fix for arabic letters
             for x in range(self.chars.shape[1]):
                 if self.fores is not None:
                     f = "\x1b[38;2;{};{};{}m".format(*self.fores[y, x])
                     b = "\x1b[48;2;{};{};{}m".format(*self.backs[y, x])
-                    line.extend([f, b, chr(self.chars[y, x])])
+                    line.extend([f, b, '\u202d', chr(self.chars[y, x])])
                 else:
                     line.append(chr(self.chars[y, x]))
             line.extend('\x1b[0m')
             yield [(None, 'U', ''.join(line).encode('utf8'))]
 
 
+r = img2unicode.Renderer(img2unicode.FastQuadDualOptimizer(), max_w=140, max_h=60, allow_upscale=True)
 import logging
 logging.basicConfig(filename='xxx.log', level=logging.DEBUG)
 
@@ -128,19 +132,20 @@ class ImgWidget(Widget):
         logging.info("Image size %s", self.img.size)
         self.extents = 0, 0, self.img.width, self.img.height
         self.factor = max(self.img.width / (r.max_w-2*OVERDRAW), self.img.height / (r.max_h-2*OVERDRAW) / 2)
+        self.initial_factor = self.factor
         logging.info("Initial zoom factor: %s", self.factor)
         self.extents = 0, 0, self.factor * (r.max_w-2*OVERDRAW), self.factor * (r.max_h - 2*OVERDRAW) * 2
         logging.info("Extended extents %s", self.extents)
         self.lastxy = (0, 0)
         self.invert = False
-        self.show()
+        self.show(self.factor)
 
         self.queue = queue.Queue()
         self.thread = threading.Thread(target=self.renderer, daemon=True).start()
 
-    def show(self, extents=None, drag_x=None, drag_y=None):
+    def show(self, factor, extents=None, drag_x=None, drag_y=None):
         l, u, r_, b = extents if extents is not None else self.extents
-        fake_extents = -OVERDRAW*self.factor+l, -OVERDRAW*2*self.factor+u, self.factor * OVERDRAW + r_, self.factor *  2 * OVERDRAW + b
+        fake_extents = -OVERDRAW*factor+l, -OVERDRAW*2*factor+u, factor * OVERDRAW + r_, factor *  2 * OVERDRAW + b
         logging.info("Fake extents: %s",fake_extents)
         img = self.img.crop(fake_extents)
 
@@ -148,6 +153,7 @@ class ImgWidget(Widget):
 
         with self.lock:
             if extents is not None:
+                self.factor = factor
                 self.extents = extents
                 self.drag_x = drag_x
                 self.drag_y = drag_y
@@ -157,9 +163,13 @@ class ImgWidget(Widget):
             self.fsarray = fs
             self.viewport = (slice(OVERDRAW,self.fsarray.height-OVERDRAW), slice(OVERDRAW, self.fsarray.width-OVERDRAW))
             self.viewported = self.fsarray[self.viewport]
+            logging.info("Rendered size: %s, %s, viewport size %s, %s", fs.width, fs.height, self.viewported.width, self.viewported.height)
             if self.lastxy != (0, 0):
                 self.quickshow(self.lastxy[0]-self.drag_x, self.lastxy[1]-self.drag_y)
             self._invalidate()
+
+    def schedule_show(self):
+        self.queue.put((self.factor,))
 
     def renderer(self):
         while True:
@@ -189,6 +199,9 @@ class ImgWidget(Widget):
 
 
     def zoom(self, factor, col, row):
+        if not (1. < self.factor * factor < self.initial_factor*3.1):
+            logging.info("Preventing rescale to %s", self.factor * factor)
+            return
         self.factor *= factor
         logging.info("New zoom factor: %s", self.factor)
         ww, wh = self.viewported.width, self.viewported.height
@@ -201,7 +214,7 @@ class ImgWidget(Widget):
         u = u+(h/factor-h)*(row/wh)
         self.extents = l, u, l+w, u+h
 
-        self.show()
+        self.schedule_show()
 
     def mouse_event(self, size, event, button, col, row, focus):
         logging.info("Event %s %s %s %s %s %s", size, event, button, col, row, focus)
@@ -228,12 +241,13 @@ class ImgWidget(Widget):
                         return
                 l, u, r, b = self.extents
                 new_extents = l-dxpix, u-dypix, r-dxpix, b-dypix
-                self.queue.put((new_extents, col, row))
+                self.queue.put((self.factor, new_extents, col, row))
                 self.last_drag = time.time()
 
     def pack(self, size=None, focus=None):
         # return self.fsarray.width, self.fsarray.height
         with self.lock:
+            logging.debug("Packed: %d, %d", self.viewported.width, self.viewported.height)
             return self.viewported.width, self.viewported.height
 
     def render(self, size, focus=False ):
@@ -252,7 +266,9 @@ class TestImgWidget(BoxWidget):
         return FSArrayCanvas(CharsArray(np.ones((size[1], size[0]), dtype='int')*ord('/'), None, None))
 
 
-def main():
+@click.command()
+@click.argument('filename', type=click.Path(dir_okay=False, exists=True))
+def main(filename):
     palette = [
         ('header', 'black,underline', 'light gray', 'standout,underline',
             'black,underline', '#88a'),
@@ -277,7 +293,7 @@ def main():
         if state:
             global r
             r = renderer
-            img_w.show()
+            img_w.schedule_show()
 
     def mode_rb(text, colors, state=False):
         # mode radio buttons
@@ -291,10 +307,14 @@ def main():
     def invert_checkbox(text, state=False):
         def new_state(chbx, state):
             img_w.invert = state
-            img_w.show()
+            img_w.schedule_show()
         chbx = urwid.CheckBox(text, state, on_state_change=new_state)
         return fcs(chbx)
 
+    cols, rows = screen.get_cols_rows()
+
+    r.max_w = cols+2*OVERDRAW
+    r.max_h = rows - 6 + 2*OVERDRAW
     header = (
         urwid.AttrMap(urwid.Columns([
             urwid.Pile([
@@ -316,9 +336,12 @@ def main():
             ]),'panel')
         )
 
-    img_w = ImgWidget(sys.argv[1] if len(sys.argv) else 'obama.jpg')
+
+    logging.debug("Header size %s, renderer = %s, %s", header.rows((cols,)), r.max_w, r.max_h)
+
+    img_w = ImgWidget(filename)
     body = (
-        Filler(LineBox(Padding(img_w, width='pack')))
+        Filler(Padding(img_w, width='pack'))
     )
 
     lbw = urwid.Pile([('pack', header), body])

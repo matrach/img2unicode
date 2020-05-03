@@ -45,6 +45,15 @@ Here is a quick comparison of the most usable optimizers:
 
 Where `S` is the number of 16x8 pixel samples to optimize for and `T` is the number of templates.
 
+## See it yourself
+
+Use the included `termview` script to browse images with all renderers:
+
+```bash
+termview examples/obama.jpg
+```
+![termview demo](examples/termview.gif)
+
 ## More samples
 To see how other optimizers compare to each other, see [examples/README.md](examples/README.md).
 

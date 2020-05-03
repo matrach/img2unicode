@@ -13,15 +13,17 @@ setup(name='img2unicode',
     author_email='matraszek.maciej@gmail.com',
     license='MIT',
     packages=find_packages(),
+    scripts=['termview'],
     package_data={
         'img2unicode': ['*.npz', '*.npy'],
     },
     install_requires=[
-          'numpy',
-          'pandas',
-          'scikit-image',
-          'pillow',
-          'n2', # For FastRenderer
+        'numpy',
+        'pandas',
+        'scikit-image',
+        'pillow',
+        'n2', # For FastRenderer
+        'urwid', # For termview TODO: move to another package
     ],
     extras_require={
         'develop': [
