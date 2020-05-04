@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from pathlib import Path
 
 import numpy as np
 
@@ -21,7 +22,7 @@ def uncubify(arr, oldshape):
 
 @contextmanager
 def open_or_pass(filename_or_fobj, *args, **kwargs):
-    if isinstance(filename_or_fobj, str):
+    if isinstance(filename_or_fobj, (str, Path)):
         with open(filename_or_fobj, *args, **kwargs) as f:
             yield f
     else:
