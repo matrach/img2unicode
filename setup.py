@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='img2unicode',
-    version='0.1a2',
+    version='0.1a4',
     description='Convert images to unicode based on font templates. Especially usable in terminal.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -22,8 +22,11 @@ setup(name='img2unicode',
         'pandas',
         'scikit-image',
         'pillow',
-        'n2', # For FastRenderer
+        'sklearn', # For ExactGammaRenderer
+        'n2', # For FastGammaRenderer
+        'cython', # n2 misses that
         'urwid', # For termview TODO: move to another package
+        'click', # UI
     ],
     extras_require={
         'develop': [
