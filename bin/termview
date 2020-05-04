@@ -112,7 +112,6 @@ class CharsArray:
 
 r = img2unicode.Renderer(img2unicode.FastQuadDualOptimizer(), max_w=140, max_h=60, allow_upscale=True)
 import logging
-logging.basicConfig(filename='../xxx.log', level=logging.DEBUG)
 
 OVERDRAW = 20
 
@@ -268,7 +267,10 @@ class TestImgWidget(BoxWidget):
 
 @click.command()
 @click.argument('filename', type=click.Path(dir_okay=False, exists=True))
-def main(filename):
+@click.option('--debug', is_flag=True)
+def main(filename, debug):
+    if debug:
+        logging.basicConfig(filename='termview.log', level=logging.DEBUG)
     palette = [
         ('header', 'black,underline', 'light gray', 'standout,underline',
             'black,underline', '#88a'),
