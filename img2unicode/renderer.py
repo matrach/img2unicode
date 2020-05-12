@@ -1,4 +1,6 @@
+import logging
 from pathlib import Path
+
 import PIL
 import PIL.Image
 import numpy as np
@@ -11,15 +13,22 @@ from img2unicode.templates import DEFAULT_TEMPLATES
 from img2unicode.utils import uncubify, open_or_pass
 
 
+def term_fore(fg):
+    fore = "\x1b[38;2;{};{};{}m".format(*list(fg))
+    return fore
+
 def float_rgb2term_fore(fg):
     fore =  list((fg*255).astype('uint8'))
-    fore = "\x1b[38;2;{};{};{}m".format(*fore)
-    return fore
+    return term_fore(fore)
+
+def term_back(back):
+    back = "\x1b[48;2;{};{};{}m".format(*list(back))
+    return back
+
 
 def float_rgb2term_back(bg):
     back = list((bg*255).astype('uint8'))
-    back = "\x1b[48;2;{};{};{}m".format(*back)
-    return back
+    return term_back(back)
 
 def term_reset():
     return "\x1b[0m"
@@ -71,31 +80,30 @@ class Renderer:
         chars, fgs, bgs = optimizer.optimize_chunk(img)
         return img, chars, fgs, bgs
 
-    def render_terminal(self, path_or_img, file, optimizer=None, **kwargs):
-        img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)
-
+    @staticmethod
+    def print_to_terminal(file, chars, fgs, bgs, sentinel='\u202D'):
         with open_or_pass(file, 'w') as f:
-            for x in range(img.shape[0]//16):
-                for y in range(img.shape[1]//8):
-                    if len(chars.shape) == 1:
-                        idx = x*(img.shape[1]//8) + y
-                    else:
-                        idx = x, y
-
+            for y in range(chars.shape[0]):
+                for x in range(chars.shape[1]):
+                    idx = y, x
                     res = chars[idx]
 
                     if fgs is not None:
-                        fore = float_rgb2term_fore(fgs[idx])
+                        fore = term_fore(fgs[idx])
                     else:
                         fore = ''
                     if bgs is not None:
-                        back = float_rgb2term_back(bgs[idx])
+                        back = term_back(bgs[idx])
                     else:
                         back = ''
-                    # Add LTR override to fix Arabic script
-                    f.write('\u202D' + fore + back + chr(res))
+                    # Add LTR override to fix Arabic script (\u202D)
+                    prefix =sentinel
+                    f.write(prefix + fore + back + chr(res))
                 f.write(term_reset() + '\n')
 
+    def render_terminal(self, path_or_img, file, optimizer=None, **kwargs):
+        chars, fgs, bgs = self.render_numpy(path_or_img, optimizer, **kwargs)
+        self.print_to_terminal(file, chars, fgs, bgs)
 
     def render_numpy(self, path_or_img, optimizer=None, **kwargs):
         img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)

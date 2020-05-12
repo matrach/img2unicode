@@ -192,10 +192,11 @@ class FastGenericDualOptimizer(BaseDualOptimizer):
 
     """
 
-    def __init__(self, charmask=None, templates=None):
+    def __init__(self, charmask=None, templates=None, use_median=True):
         cs, indexer = get_16x8_flat(templates, charmask)
         self.cs = cs
         self.indexer = indexer
+        self.use_median = use_median
         with np.errstate(divide='ignore', invalid='ignore'):
             self.cs1 = np.nan_to_num(
                 (cs / np.sqrt(np.sum(cs, axis=1))[:, np.newaxis]))
@@ -213,12 +214,21 @@ class FastGenericDualOptimizer(BaseDualOptimizer):
         best_masks = self.cs[best_char][:, :, np.newaxis]
 
         with np.errstate(divide='ignore', invalid='ignore'):
-            fg = np.nan_to_num(
-                np.clip(np.sum(best_masks * Q, axis=1) / best_masks.sum(axis=1), 0,
-                        1))
-            bg = np.nan_to_num(np.clip(
-                np.sum((1 - best_masks) * Q, axis=1) / (1 - best_masks).sum(
-                    axis=1), 0, 1))
+            if self.use_median:
+                fg = (np.where(best_masks>0.5, 1, np.nan))*Q
+                fg = np.nanmedian(fg, axis=1)
+                bg = (np.where(best_masks<0.5, 1, np.nan))*Q
+                bg = np.nanmedian(bg, axis=1)
+            else:
+                fg = np.clip(np.sum(best_masks * Q, axis=1) / best_masks.sum(axis=1), 0, 1)
+                bg = np.clip(np.sum((1 - best_masks) * Q, axis=1) / (1 - best_masks).sum(axis=1), 0, 1)
+
+            # Fix whole blocks with second color and vice versa
+            fg = np.where(np.isnan(fg), bg, fg)
+            bg = np.where(np.isnan(bg), fg, bg)
+
+            fg = np.nan_to_num(fg)
+            bg = np.nan_to_num(bg)
 
         return self.indexer[best_char], fg, bg
 

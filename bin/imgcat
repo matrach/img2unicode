@@ -13,6 +13,7 @@ dual_optimizers = {
     'fast-block': 'FastGenericDualOptimizer("block")',
     'fast-all': 'FastGenericDualOptimizer()',
     'fast-ascii': 'FastGenericDualOptimizer("ascii")',
+    'fast-noblock2': 'FastGenericDualOptimizer("no_block")',
 }
 
 gamma_optimizers = {

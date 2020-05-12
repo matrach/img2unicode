@@ -53,7 +53,8 @@ class Templates:
         # Unicode Block Characters
         block = self.default_mask.copy()
         block[:] = 0
-        block[0x2580:0x2597+1] = 1
+        block[0x2580:0x259F+1] = 1
+
 
         # Block mess up with Gamma optimizers
         no_block = ~block

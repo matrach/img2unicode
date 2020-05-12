@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import unicodedata
 
 import click
 import os
@@ -12,9 +13,11 @@ import PIL
 import numpy as np
 import urwid
 import urwid.raw_display
-from urwid import Canvas, BoxWidget, Padding, Widget, LineBox, Filler
+from urwid import Canvas, BoxWidget, Padding, Widget, LineBox, Filler, \
+    FixedWidget
 
 import img2unicode
+from build.lib.img2unicode import Renderer, skimage
 
 
 class FSArrayCanvas(Canvas):
@@ -101,17 +104,19 @@ class CharsArray:
             line = ['\u202d'] # L-T-R override - fix for arabic letters
             for x in range(self.chars.shape[1]):
                 if self.fores is not None:
-                    f = "\x1b[38;2;{};{};{}m".format(*self.fores[y, x])
-                    b = "\x1b[48;2;{};{};{}m".format(*self.backs[y, x])
+                    f = img2unicode.term_fore(self.fores[y, x])
+                    b = img2unicode.term_back(self.backs[y, x])
+                    # XXX: LTR overddie break Block rendering in libvte
                     line.extend([f, b, '\u202d', chr(self.chars[y, x])])
                 else:
                     line.append(chr(self.chars[y, x]))
-            line.extend('\x1b[0m')
+            line.extend(img2unicode.term_reset())
             yield [(None, 'U', ''.join(line).encode('utf8'))]
 
 
 r = img2unicode.Renderer(img2unicode.FastQuadDualOptimizer(), max_w=140, max_h=60, allow_upscale=True)
 import logging
+logging.captureWarnings(True)
 
 OVERDRAW = 20
 
@@ -137,10 +142,21 @@ class ImgWidget(Widget):
         logging.info("Extended extents %s", self.extents)
         self.lastxy = (0, 0)
         self.invert = False
+        self.drag_active = False
         self.show(self.factor)
 
         self.queue = queue.Queue()
         self.thread = threading.Thread(target=self.renderer, daemon=True).start()
+        body = (
+            Filler(Padding(self, width='pack'))
+        )
+        self.placeholder = urwid.WidgetPlaceholder(body)
+
+    def build(self):
+        return self.placeholder
+
+    def on_right_click(self, x, y):
+        ZoomOverlay(self, self.placeholder.original_widget, x, y, self.placeholder)
 
     def show(self, factor, extents=None, drag_x=None, drag_y=None):
         l, u, r_, b = extents if extents is not None else self.extents
@@ -217,16 +233,21 @@ class ImgWidget(Widget):
 
     def mouse_event(self, size, event, button, col, row, focus):
         logging.info("Event %s %s %s %s %s %s", size, event, button, col, row, focus)
+        if button == 3 and (event=='mouse drag' or event=='mouse press'):
+            self.on_right_click(col, row)
         if event == 'mouse press':
+            self.drag_active = False
             if button == 4:
                 self.zoom(.5, col, row)
             elif button == 5:
                 self.zoom(2, col, row)
-            self.drag_x = col
-            self.drag_y = row
-            self.drag_extents = self.extents
-            self.last_drag = time.time()
-        elif event == 'mouse drag' or event == 'mouse release':
+            elif button == 1:
+                self.drag_x = col
+                self.drag_y = row
+                self.drag_extents = self.extents
+                self.last_drag = time.time()
+                self.drag_active = True
+        elif self.drag_active and (event == 'mouse drag' or event == 'mouse release'):
             with self.lock:
                 dx = (col-self.drag_x)
                 dxpix = dx * self.factor
@@ -253,6 +274,25 @@ class ImgWidget(Widget):
         with self.lock:
             return FSArrayCanvas(self.viewported)
 
+class SimpleImagWidget(FixedWidget):
+    def __init__(self, img=None):
+        self.R = Renderer(img2unicode.HalfBlockDualOptimizer(), max_h=8, max_w=16, allow_upscale=True)
+        # self.set_img(np.zeros((8, 16)))
+        if img is None:
+            img = img2unicode.DEFAULT_TEMPLATES.raw_16x16[0x25f4].clip(0,1)
+        self.set_img(skimage.img_as_ubyte(img))
+
+
+    def set_img(self, img):
+        self.fs = CharsArray(*self.R.render_numpy(img, ))
+        logging.info("SIW h %s, w %s", self.fs.height, self.fs.width)
+
+    def pack(self, size=None, focus=None):
+        return self.fs.width, self.fs.height
+
+    def render(self, size, focus=False ):
+        return FSArrayCanvas(self.fs)
+
 class TestImgWidget(BoxWidget):
     """
     A box widget that fills an area with a single character
@@ -263,6 +303,48 @@ class TestImgWidget(BoxWidget):
     def render(self, size, focus=False):
         logging.debug("TEST WIDGET SIZE %s F %s", size, focus)
         return FSArrayCanvas(CharsArray(np.ones((size[1], size[0]), dtype='int')*ord('/'), None, None))
+
+class ZoomOverlay(urwid.Overlay):
+    def __init__(self, img_w, body, x, y, wrapper:urwid.WidgetPlaceholder):
+        cha = img_w.viewported.chars[y, x]
+        raw = img2unicode.DEFAULT_TEMPLATES.raw_16x16[cha].clip(0, 1)
+        athin = np.any(raw[:,8:] > 0.1)
+        bigs = img2unicode.DEFAULT_TEMPLATES.base_16x16[cha].clip(0, 1)
+        colors = np.ones((8, 16, 3), dtype='int8')
+        colors = np.concatenate([colors*img_w.viewported.fores[y, x], colors*img_w.viewported.backs[y, x]], axis=0)
+        extents = (img_w.extents[0] + img_w.factor*x, img_w.extents[1] +img_w.factor*y*2, img_w.extents[0] +img_w.factor*(x+2), img_w.extents[1] +img_w.factor*(y*2+2))
+        logging.info("B %s img extents %s", img_w.viewported.backs[y, x], extents)
+        size = 8 if not athin else 12
+        try:
+            name = unicodedata.name(chr(cha))
+        except Exception:
+            name = '_unk_'
+        super().__init__(urwid.Pile([
+            urwid.Columns([
+                LineBox(Padding(SimpleImagWidget(colors), width='clip'), title='col'),
+                LineBox(Padding(SimpleImagWidget(img_w.img.crop(extents)), width='clip'), title='img'),
+            ]),
+            urwid.Columns([
+                LineBox(Padding(SimpleImagWidget(raw), width='clip'), title='raw'),
+                LineBox(
+                    Padding(SimpleImagWidget((raw[:,:,np.newaxis]*img_w.viewported.fores[y, x] + (1-raw)[:,:,np.newaxis]*img_w.viewported.backs[y, x]).astype('uint8')),
+                            width='clip'), title='rend'),
+            ]),
+            urwid.Columns([
+                LineBox(Padding(SimpleImagWidget(bigs), width='clip'), title='templ'),
+                LineBox(
+                    Padding(SimpleImagWidget((bigs[:, :, np.newaxis] * img_w.viewported.fores[y, x] + (1 - bigs)[:, :, np.newaxis] * img_w.viewported.backs[y, x]).astype('uint8')),
+                            width='clip'), title='rend'),
+            ]),
+            urwid.Text('%s - U+%04x: %s' % (chr(cha), cha, name)),
+        ]), body, 'left' if x > img_w.pack()[0]//2 else 'right', (size+2)*2, 'middle', 'pack')
+        self.wrapper = wrapper
+        wrapper.original_widget = self
+
+    def mouse_event(self, *args):
+        self.wrapper.original_widget = self.bottom_w
+        return self.bottom_w.mouse_event(*args)
+
 
 
 @click.command()
@@ -324,6 +406,7 @@ def main(filename, debug):
                 mode_rb("Space", img2unicode.Renderer(img2unicode.SpaceDualOptimizer(), max_h=r.max_h, max_w=r.max_w, allow_upscale=True)),
                 mode_rb("Half", img2unicode.Renderer(img2unicode.HalfBlockDualOptimizer(), max_h=r.max_h, max_w=r.max_w, allow_upscale=True)),
                 mode_rb("Block", img2unicode.Renderer(img2unicode.FastGenericDualOptimizer('block'), max_h=r.max_h, max_w=r.max_w, allow_upscale=True)),
+                mode_rb("No-Block", img2unicode.Renderer(img2unicode.FastGenericDualOptimizer('no_block'), max_h=r.max_h, max_w=r.max_w, allow_upscale=True)),
                 urwid.Divider(),
                 fcs(urwid.Button("Exit", click_exit)),
             ]),
@@ -342,11 +425,7 @@ def main(filename, debug):
     logging.debug("Header size %s, renderer = %s, %s", header.rows((cols,)), r.max_w, r.max_h)
 
     img_w = ImgWidget(filename)
-    body = (
-        Filler(Padding(img_w, width='pack'))
-    )
-
-    lbw = urwid.Pile([('pack', header), body])
+    lbw = urwid.Pile([('pack', header), img_w.build()])
 
     def unhandled_input(key):
         if key in ('Q','q','esc'):
