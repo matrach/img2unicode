@@ -1,3 +1,4 @@
+import io
 import logging
 from pathlib import Path
 
@@ -58,7 +59,7 @@ class Renderer:
         elif isinstance(path_or_img, np.ndarray):
             img = PIL.Image.fromarray(path_or_img)
         elif isinstance(path_or_img, bytes):
-            img = PIL.Image.frombytes(path_or_img)
+            img = PIL.Image.open(io.BytesIO(path_or_img))
         else:
             raise ValueError("Cannot interpret %s as image" % path_or_img)
 
