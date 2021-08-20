@@ -23,7 +23,6 @@ setup(name='img2unicode',
         'scikit-image',
         'pillow',
         'sklearn', # For ExactGammaRenderer
-        'n2', # For FastGammaRenderer
         'cython', # n2 misses that
         'urwid', # For termview TODO: move to another package
         'click', # UI
@@ -34,6 +33,9 @@ setup(name='img2unicode',
             'pytest-cov',
             'sphinx',
             'sphinx_autodoc_typehints',
+        ],
+        'n2': [
+            'n2', # For FastGammaRenderer
         ]
     },
     classifiers=[

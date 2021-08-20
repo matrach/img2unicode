@@ -7,6 +7,20 @@ pip install img2unicode
 imgcat image.jpg
 ````
 
+## Installation
+
+You can install img2unicode via pip from PyPI:
+
+```sh
+$ pip install img2unicode
+```
+
+If you want to utilize `FastGammaOptimizer`,
+install the optional n2 dependency:
+
+```sh
+$ pip install 'img2unicode[n2]'
+```
 
 ## Usage
 
