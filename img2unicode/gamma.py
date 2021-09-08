@@ -1,6 +1,5 @@
 import numpy as np
 import skimage.transform
-from n2 import HnswIndex
 from sklearn.neighbors import NearestNeighbors
 
 from img2unicode.templates import get_16x16, DEFAULT_TEMPLATES, normalize_mask
@@ -134,7 +133,17 @@ class ExactGammaOptimizer(BasicGammaOptimizer):
 
 class FastGammaOptimizer(ExactGammaOptimizer):
     """This has the same principle as ExactGammaOptmizer, but an approximate nearest neighbour algorithm is used."""
+    
     def build_nn(self, bigs2, bigse):
+        try:
+            from n2 import HnswIndex
+        except ModuleNotFoundError:
+            raise ImportError(
+                "n2 is not installed."
+                " To install it an an optional dependency,"
+                " run `pip install 'img2unicode[n2]'`"
+            )
+
         Dataset = (np.concatenate(
             [bigs2.reshape(bigs2.shape[0], -1), bigse.reshape(bigse.shape[0], -1)/10], axis=1))
 
