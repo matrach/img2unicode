@@ -17,10 +17,10 @@ dual_optimizers = {
 }
 
 gamma_optimizers = {
-    'fast-noblock': 'FastGammaOptimizer(charmask="no_block")',
-    'fast-braille': 'FastGammaOptimizer(charmask="braille")',
-    'fast-noblock-bw': 'FastGammaOptimizer(charmask="no_block", use_color=False)',
-    'fast-ascii-bw': 'FastGammaOptimizer(charmask="ascii", use_color=False)',
+    'fast-noblock': 'BestGammaOptimizer(charmask="no_block")',
+    'fast-braille': 'BestGammaOptimizer(charmask="braille")',
+    'fast-noblock-bw': 'BestGammaOptimizer(charmask="no_block", use_color=False)',
+    'fast-ascii-bw': 'BestGammaOptimizer(charmask="ascii", use_color=False)',
 }
 
 optimizers = ['dual/' + k for k in dual_optimizers.keys()] + ['gamma/' + k for k in gamma_optimizers.keys()]
@@ -30,7 +30,9 @@ optimizers = ['dual/' + k for k in dual_optimizers.keys()] + ['gamma/' + k for k
 @click.option('--optimizer', type=click.Choice(optimizers), default='dual/quad')
 @click.option('--rows', type=int, default=24)
 @click.option('--cols', type=int, default=80)
-def main(filename, optimizer, rows, cols):
+@click.option('--sentinel', type=str, default=DEFAULT_SENTINEL,
+              help="Character interlaced with the output to prevent unwanted ligatures and such.")
+def main(filename, optimizer, rows, cols, sentinel):
     renderer, optimizer = optimizer.split('/')
     optimizer = dict(dual_optimizers, **gamma_optimizers)[optimizer]
     optimizer = eval(optimizer)
@@ -41,7 +43,7 @@ def main(filename, optimizer, rows, cols):
         renderer = GammaRenderer(optimizer, max_w=cols, max_h=rows,
                             allow_upscale=True)
 
-    renderer.render_terminal(filename, sys.stdout)
+    renderer.render_terminal(filename, sys.stdout, sentinel=sentinel)
 
 
 if __name__ == '__main__':

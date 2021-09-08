@@ -120,9 +120,9 @@ class ExactGammaOptimizer(BasicGammaOptimizer):
         self.thin_bigs2 = self.build_nn(self.thin_bigs2, self.thin_bigse)
 
     def build_nn(self, bigs2, bigse):
-        Dataset = (np.concatenate(
+        dataset = (np.concatenate(
             [bigs2.reshape(bigs2.shape[0], -1), bigse.reshape(bigse.shape[0], -1)/10], axis=1))
-        nbrs = NearestNeighbors(n_neighbors=1, algorithm='kd_tree', n_jobs=1, leaf_size=10).fit(Dataset)
+        nbrs = NearestNeighbors(n_neighbors=1, algorithm='kd_tree', n_jobs=1, leaf_size=10).fit(dataset)
         return nbrs
 
     def search(self, t, te, nbrs, _bigse):
@@ -140,15 +140,15 @@ class FastGammaOptimizer(ExactGammaOptimizer):
         except ModuleNotFoundError:
             raise ImportError(
                 "n2 is not installed."
-                " To install it an an optional dependency,"
+                " To install it as an optional dependency,"
                 " run `pip install 'img2unicode[n2]'`"
             )
 
-        Dataset = (np.concatenate(
+        dataset = (np.concatenate(
             [bigs2.reshape(bigs2.shape[0], -1), bigse.reshape(bigse.shape[0], -1)/10], axis=1))
 
         index = HnswIndex(320, "euclidean")
-        for i in Dataset:
+        for i in dataset:
             index.add_data(i)
 
         index.build(m=5)
@@ -159,3 +159,8 @@ class FastGammaOptimizer(ExactGammaOptimizer):
         res = nbrs.search_by_vector(Q, 1, include_distances=True)[0]
         return res
 
+try:
+    import n2
+    BestGammaOptimizer = FastGammaOptimizer
+except ImportError:
+    BestGammaOptimizer = ExactGammaOptimizer

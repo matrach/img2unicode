@@ -11,13 +11,21 @@ import traceback
 
 import PIL
 import numpy as np
-import urwid
+try:
+    import urwid
+except ImportError:
+    raise ImportError(
+        "urvid is not installed."
+        " To install it as an optional dependency,"
+        " run `pip install 'img2unicode[termview]'`"
+    )
+
 import urwid.raw_display
 from urwid import Canvas, BoxWidget, Padding, Widget, LineBox, Filler, \
     FixedWidget
 
 import img2unicode
-from build.lib.img2unicode import Renderer, skimage
+from img2unicode import Renderer, skimage
 
 
 class FSArrayCanvas(Canvas):

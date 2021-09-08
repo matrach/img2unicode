@@ -22,6 +22,9 @@ install the optional n2 dependency:
 $ pip install 'img2unicode[n2]'
 ```
 
+Note that `ExactGammaOptimizer` is more portable, yet much slower.
+Use `BestGammaOptimizer` alias to choose automatically between these two.
+
 ## Usage
 
 ```python
@@ -32,7 +35,7 @@ renderer = img2unicode.Renderer(default_optimizer=optimizer, max_h=60, max_w=160
 renderer.render_terminal('examples/obama.jpg', 'obama-block.txt')
 
 # Pair Renderer to Optimizer
-optimizer = img2unicode.FastGammaOptimizer("no_block")
+optimizer = img2unicode.FastGammaOptimizer("no_block") # Or ExactGammaOptimizer
 renderer = img2unicode.GammaRenderer(default_optimizer=optimizer, max_h=60, max_w=160)
 renderer.render_terminal('examples/obama.jpg', 'obama-noblock.txt')
 
@@ -62,7 +65,13 @@ Where `S` is the number of 16x8 pixel samples to optimize for and `T` is the num
 
 ## See it yourself
 
-Use the included `termview` script to browse images with all renderers:
+Use the included `termview` script to browse images with all renderers. First, install the optional dependency:
+
+```sh
+$ pip install 'img2unicode[termview]'
+```
+
+then execute:
 
 ```bash
 termview examples/obama.jpg
@@ -79,7 +88,7 @@ imgcat examples/obama.jpg
 ## More samples
 To see how other optimizers compare to each other, see [examples/README.md](examples/README.md).
 
-To see more eyecandy of photos, videos and plots, see the [matrach/img2unicode-deoms repo](https://github.com/matrach/img2unicode-demos)
+To see more eyecandy of photos, videos and plots, see the [matrach/img2unicode-demos repo](https://github.com/matrach/img2unicode-demos)
 
 # TODO
 

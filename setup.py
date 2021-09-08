@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='img2unicode',
-    version='0.1a7',
+    version='0.1a8',
     description='Convert images to unicode based on font templates. Especially usable in terminal.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -23,8 +23,6 @@ setup(name='img2unicode',
         'scikit-image',
         'pillow',
         'sklearn', # For ExactGammaRenderer
-        'cython', # n2 misses that
-        'urwid', # For termview TODO: move to another package
         'click', # UI
     ],
     extras_require={
@@ -35,7 +33,11 @@ setup(name='img2unicode',
             'sphinx_autodoc_typehints',
         ],
         'n2': [
+            'cython',  # n2 misses that
             'n2', # For FastGammaRenderer
+        ],
+        'termview': [
+            'urwid', # For termview
         ]
     },
     classifiers=[

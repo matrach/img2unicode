@@ -13,6 +13,7 @@ import skimage
 from img2unicode.templates import DEFAULT_TEMPLATES
 from img2unicode.utils import uncubify, open_or_pass
 
+DEFAULT_SENTINEL = '\N{LEFT-TO-RIGHT OVERRIDE}' # '\u202D'
 
 def term_fore(fg):
     fore = "\x1b[38;2;{};{};{}m".format(*list(fg))
@@ -82,7 +83,7 @@ class Renderer:
         return img, chars, fgs, bgs
 
     @staticmethod
-    def print_to_terminal(file, chars, fgs, bgs, sentinel='\u202D'):
+    def print_to_terminal(file, chars, fgs, bgs, sentinel=DEFAULT_SENTINEL):
         with open_or_pass(file, 'w') as f:
             for y in range(chars.shape[0]):
                 for x in range(chars.shape[1]):
@@ -98,13 +99,13 @@ class Renderer:
                     else:
                         back = ''
                     # Add LTR override to fix Arabic script (\u202D)
-                    prefix =sentinel
+                    prefix = sentinel
                     f.write(prefix + fore + back + chr(res))
                 f.write(term_reset() + '\n')
 
-    def render_terminal(self, path_or_img, file, optimizer=None, **kwargs):
+    def render_terminal(self, path_or_img, file, optimizer=None, sentinel=DEFAULT_SENTINEL, **kwargs):
         chars, fgs, bgs = self.render_numpy(path_or_img, optimizer, **kwargs)
-        self.print_to_terminal(file, chars, fgs, bgs)
+        self.print_to_terminal(file, chars, fgs, bgs, sentinel=sentinel)
 
     def render_numpy(self, path_or_img, optimizer=None, **kwargs):
         img, chars, fgs, bgs = self.optimize(path_or_img, optimizer, **kwargs)
