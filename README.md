@@ -90,6 +90,15 @@ To see how other optimizers compare to each other, see [examples/README.md](exam
 
 To see more eyecandy of photos, videos and plots, see the [matrach/img2unicode-demos repo](https://github.com/matrach/img2unicode-demos)
 
+## How it works
+
+`img2unicode` employs optimization with (Approximate) Nearest Neighbors. For each chunk of an image (i.e. 16x32 px), the tool basically selects a glyph (from a prerendered dataset) that optimizes both:
+
+- perceptual similarity (implemented as a pixel-by-pixel Euclidean distance between the blurred glyph template and the chunk),
+- visually matching edges (as you can see in the Obama example).
+
+The need to use ML arose from the need to support arbitrary Unicode glyphs. This is not easily portable while maintaining the rendering quality, because there is a lot of variability between rendering by different terminal backends (e.g., libvte, kitty, etc.) and fonts.
+
 # TODO
 
   - [ ] write more docs, document code
