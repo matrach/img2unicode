@@ -90,7 +90,7 @@ To see how other optimizers compare to each other, see [examples/README.md](exam
 
 To see more eyecandy of photos, videos and plots, see the [matrach/img2unicode-demos repo](https://github.com/matrach/img2unicode-demos)
 
-## How it works
+# How FastGammaOptimizer works
 
 `img2unicode` employs optimization with (Approximate) Nearest Neighbors. For each chunk of an image (i.e. 16x32 px), the tool basically selects a glyph (from a prerendered dataset) that optimizes both:
 
@@ -99,7 +99,7 @@ To see more eyecandy of photos, videos and plots, see the [matrach/img2unicode-d
 
 The need to use ML arose from the need to support arbitrary Unicode glyphs. This is not easily portable while maintaining the rendering quality, because there is a lot of variability between rendering by different terminal backends (e.g., libvte, kitty, etc.) and fonts.
 
-# Detailts of FastGenericDualOptimizer
+# Details of FastGenericDualOptimizer
 The algorithm select characters when we control both background and foreground of each piece.
 
 In a general case, when using characters with a grayscale channel and a [well-behaved color space such as LAB or HCL](https://www.youtube.com/watch?v=xAoljeRJ3lU), the algorithm should minimize the total deviation of each pixel from the selected template.
