@@ -18,7 +18,7 @@ setup(name='img2unicode',
         'img2unicode': ['*.npz', '*.npy'],
     },
     install_requires=[
-        'numpy',
+        'numpy>=1.19,<2',
         'pandas',
         'scikit-image>=0.19,<1.0',
         'pillow',

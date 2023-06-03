@@ -1,3 +1,4 @@
+import os
 import time
 
 from img2unicode import *
@@ -33,6 +34,10 @@ gamma_optimizers = {
 }
 
 for k in gamma_optimizers:
+    # FastGamma is not supported on Windows
+    if os.name == 'nt' and k.startswith('fast'):
+        continue
+
     s = time.time()
     name = gamma_optimizers[k]
     gamma_optimizers[k] = eval(name)
@@ -61,4 +66,3 @@ for img in images:
             img_fn = (basedir/opt_name).with_suffix('.png')
             renderer.prerender(img_path, optimizer=opt).save(img_fn)
             print(f"| {renderer.__class__.__name__} | {dirname}/{opt_name} | {e-s:.2f}s | ![]({img_fn}) | ")
-
