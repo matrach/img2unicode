@@ -69,7 +69,7 @@ class Renderer:
     def _prepare_image(self, img):
         ims = skimage.img_as_float32(img)
 #         ims = skimage.transform.downscale_local_mean(ims, (downscale, downscale, 1))
-        ims = skimage.filters.gaussian(ims, 1, multichannel=True)
+        ims = skimage.filters.gaussian(ims, 1, channel_axis=-1)
         ims = ims[:ims.shape[0]-(ims.shape[0]%16), :ims.shape[1]-(ims.shape[1]%8)]
         return ims
 
@@ -160,7 +160,7 @@ class GammaRenderer(Renderer):
 #         if downscale not in (0, 1):
 #             imgl = skimage.transform.downscale_local_mean(imgl, (downscale,downscale))
 
-        img_gray = skimage.filters.gaussian(imgl, 1, multichannel=True)
+        img_gray = skimage.filters.gaussian(imgl, 1, channel_axis=None)
 #         img_gray = skimage.exposure.adjust_sigmoid(img_gray)
         img_edges = skimage.feature.canny(skimage.transform.downscale_local_mean(imgl, (2,2)), 1).astype('float')
         img_gray = img_gray[:img_gray.shape[0]-(img_gray.shape[0]%16), :img_gray.shape[1]-(img_gray.shape[1]%8)]
@@ -169,7 +169,7 @@ class GammaRenderer(Renderer):
         imgc = skimage.img_as_float(img.convert('RGB'))
 #         if downscale not in (0, 1):
 #             imgc = skimage.transform.downscale_local_mean(imgc, (downscale,downscale,1))
-        imgc = skimage.filters.gaussian(imgc, 1, multichannel=True)
+        imgc = skimage.filters.gaussian(imgc, 1, channel_axis=-1)
         imgc = imgc[:imgc.shape[0]-(imgc.shape[0]%16), :imgc.shape[1]-(imgc.shape[1]%8)]
 
 
