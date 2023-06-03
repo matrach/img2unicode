@@ -61,7 +61,11 @@ for img in images:
         basedir.mkdir(exist_ok=True, parents=True)
         for opt_name, opt in optimizers.items():
             s = time.time()
-            renderer.render_terminal(img_path, (basedir/opt_name).with_suffix('.txt'), optimizer=opt)
+            file = (basedir / opt_name).with_suffix('.txt')
+            if os.name == 'nt':
+                # Windows runners seem strange
+                file = file.open(mode='w', encoding='utf-16')
+            renderer.render_terminal(img_path, file, optimizer=opt)
             e = time.time()
             img_fn = (basedir/opt_name).with_suffix('.png')
             renderer.prerender(img_path, optimizer=opt).save(img_fn)
